@@ -285,6 +285,61 @@ class PairRMJudge(BasePairwiseJudge):
             return ranks[:, 0].tolist()
 
 
+# class HfPairwiseJudge(BasePairwiseJudge):
+#     """
+#     Pairwise judge based on the Hugging Face API with chat completion.
+
+#     This judge is relevant for assessing the quality chat models, where the completion is a response to a given prompt.
+
+#     Args:
+#         model (`str`, *optional*, defaults to `"meta-llama/Meta-Llama-3-70B-Instruct"`):
+#             Model to use for the judge.
+#         token (`str`, *optional*):
+#             Hugging Face API token to use for the [`huggingface_hub.InferenceClient`].
+#         system_prompt (`str` or `None`, *optional*, defaults to `None`):
+#             The system prompt to be used for the judge. If not provided, a default prompt is used. Note that the system
+#             prompt should contain the following placeholders: `{prompt}`, `{response0}`, and `{response1}`. Also, the
+#             inference is called with `max_tokens=1`, consequently the system prompt should ask for a single token
+#             response.
+#     """
+
+#     def __init__(
+#         self,
+#         model="meta-llama/Meta-Llama-3-70B-Instruct",
+#         token: Optional[str] = None,
+#         system_prompt: Optional[str] = None,
+#     ):
+#         self.client = InferenceClient(model=model, token=token)
+#         self.system_prompt = system_prompt or DEFAULT_PAIRWISE_SYSTEM_PROMPT
+
+#     def judge(self, prompts: List[str], completions: List[List[str]], shuffle_order: bool = True) -> List[int]:
+#         # Shuffle the order of the completions to avoid positional bias
+#         if shuffle_order:
+#             flip_mask = np.random.choice([True, False], size=len(prompts))
+#             completions = [pair[::-1] if flip else pair for flip, pair in zip(flip_mask, completions)]
+
+#         # Define a function to get the rank for a single prompt, will be called concurrently
+#         def get_rank(prompt, candidates):
+#             content = self.system_prompt.format(prompt=prompt, response0=candidates[0], response1=candidates[1])
+#             completion = self.client.chat_completion(messages=[{"role": "user", "content": content}], max_tokens=1)
+#             response = completion.choices[0].message.content
+#             if response in ["0", "1"]:
+#                 return int(response)
+#             else:
+#                 logging.debug(f"Invalid response from the judge model: '{response}'. Returning -1.")
+#                 return -1
+
+#         # Call the completions concurrently
+#         with concurrent.futures.ThreadPoolExecutor() as executor:
+#             ranks = list(executor.map(get_rank, prompts, completions))
+
+#         # Flip back the ranks to the original order if needed
+#         if shuffle_order:
+#             ranks = [ranks[i] if not flip else 1 - ranks[i] for i, flip in enumerate(flip_mask)]
+
+#         # Return the ranks
+#         return ranks
+
 class HfPairwiseJudge(BasePairwiseJudge):
     """
     Pairwise judge based on the Hugging Face API with chat completion.
@@ -305,11 +360,12 @@ class HfPairwiseJudge(BasePairwiseJudge):
 
     def __init__(
         self,
-        model="meta-llama/Meta-Llama-3-70B-Instruct",
+        model=None,
+        tokenizer=None,
         token: Optional[str] = None,
         system_prompt: Optional[str] = None,
     ):
-        self.client = InferenceClient(model=model, token=token)
+        self.model, self.tokenizer = model, tokenizer
         self.system_prompt = system_prompt or DEFAULT_PAIRWISE_SYSTEM_PROMPT
 
     def judge(self, prompts: List[str], completions: List[List[str]], shuffle_order: bool = True) -> List[int]:
@@ -321,8 +377,13 @@ class HfPairwiseJudge(BasePairwiseJudge):
         # Define a function to get the rank for a single prompt, will be called concurrently
         def get_rank(prompt, candidates):
             content = self.system_prompt.format(prompt=prompt, response0=candidates[0], response1=candidates[1])
-            completion = self.client.chat_completion(messages=[{"role": "user", "content": content}], max_tokens=1)
-            response = completion.choices[0].message.content
+            print(f'len(content):{len(content.strip())}')
+            inputs = self.tokenizer([content], return_tensors = "pt").to("cuda")
+            outputs = self.model.generate(**inputs, max_new_tokens = 1, use_cache = True)
+            # response = completion.choices[0].message.content
+            response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+            print(f'len(response):{len(response.strip())}; output content = {response.strip()[-1]}')
+            response = response.strip()[-1]
             if response in ["0", "1"]:
                 return int(response)
             else:
@@ -339,7 +400,6 @@ class HfPairwiseJudge(BasePairwiseJudge):
 
         # Return the ranks
         return ranks
-
 
 class OpenAIPairwiseJudge(BasePairwiseJudge):
     """
