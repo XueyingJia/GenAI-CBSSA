@@ -117,7 +117,7 @@ Evaluate the models based on their helpfulness and harmlessness. Select the mode
 
 
 #JUDGES = {"pair_rm": PairRMJudge, "openai": OpenAIPairwiseJudge, "hf": HfPairwiseJudge}
-
+os.environ["LITELLM_API_KEY"] = "sk-A6MWgEmi6WofqK_RPdleew"
 
 if __name__ == "__main__":
     parser = TrlParser((ScriptArguments, OnlineDPOConfig, ModelConfig))
@@ -167,21 +167,24 @@ if __name__ == "__main__":
         reward_tokenizer = None
     
     if training_args.judge is not None:
-        judge_bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,  # Enable 4-bit quantization
-            bnb_4bit_compute_dtype='float16',  # Set computation precision (e.g., float16 or float32)
-            bnb_4bit_use_double_quant=True,    # Optional: Double quantization improves precision
-            bnb_4bit_quant_type="nf4"          # Quantization type (e.g., "nf4" or "fp4")
-        )
-        model_name = "unsloth/Meta-Llama-3.1-8B-Instruct"  # Replace with your model name
+        if training_args.judge == 'unsloth':
+            judge_bnb_config = BitsAndBytesConfig(
+                load_in_4bit=True,  # Enable 4-bit quantization
+                bnb_4bit_compute_dtype='float16',  # Set computation precision (e.g., float16 or float32)
+                bnb_4bit_use_double_quant=True,    # Optional: Double quantization improves precision
+                bnb_4bit_quant_type="nf4"          # Quantization type (e.g., "nf4" or "fp4")
+            )
+            model_name = "unsloth/Meta-Llama-3.1-8B-Instruct"  # Replace with your model name
 
-        judge_model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            quantization_config=judge_bnb_config,  # Apply 4-bit quantization
-            device_map="auto"               # Automatically map model layers to available devices (e.g., GPU)
-        )
-        judge_tokenizer = AutoTokenizer.from_pretrained(model_name)
-        judge = HfPairwiseJudge(judge_model, judge_tokenizer, system_prompt=SG_PAIRWISE_SYSTEM_PROMPT)
+            judge_model = AutoModelForCausalLM.from_pretrained(
+                model_name,
+                quantization_config=judge_bnb_config,  # Apply 4-bit quantization
+                device_map="auto"               # Automatically map model layers to available devices (e.g., GPU)
+            )
+            judge_tokenizer = AutoTokenizer.from_pretrained(model_name)
+            judge = HfPairwiseJudge(judge_model, judge_tokenizer, system_prompt=SG_PAIRWISE_SYSTEM_PROMPT)
+        elif training_args.judge == 'gpt-4o-mini':
+            judge = OpenAIPairwiseJudge(model="gpt-4o-mini", system_prompt=SG_PAIRWISE_SYSTEM_PROMPT)
     else:
         judge = None
 
@@ -210,7 +213,7 @@ if __name__ == "__main__":
 
     dataset = load_dataset(script_args.dataset_name)
     train_dataset = dataset[script_args.dataset_train_split]
-    train_dataset = train_dataset.select(range(10000))
+    train_dataset = train_dataset.select(range(40000))
 
     # Add these after model loading:
     print("\nModel quantization verification:")

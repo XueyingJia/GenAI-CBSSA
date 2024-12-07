@@ -377,12 +377,11 @@ class HfPairwiseJudge(BasePairwiseJudge):
         # Define a function to get the rank for a single prompt, will be called concurrently
         def get_rank(prompt, candidates):
             content = self.system_prompt.format(prompt=prompt, response0=candidates[0], response1=candidates[1])
-            print(f'len(content):{len(content.strip())}')
+            # print(f'len(content):{len(content.strip())}')
             inputs = self.tokenizer([content], return_tensors = "pt").to("cuda")
             outputs = self.model.generate(**inputs, max_new_tokens = 1, use_cache = True)
-            # response = completion.choices[0].message.content
             response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-            print(f'len(response):{len(response.strip())}; output content = {response.strip()[-1]}')
+            # print(f'len(response):{len(response.strip())}; output content = {response.strip()[-1]}')
             response = response.strip()[-1]
             if response in ["0", "1"]:
                 return int(response)
