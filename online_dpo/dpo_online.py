@@ -133,6 +133,8 @@ if __name__ == "__main__":
         }
         training_args.quantization_config = config_dict
         print("Training args quantization config:", training_args.quantization_config)
+    else:
+        training_args.quantization_config = None
 
     model_kwargs = dict(
         revision=model_config.model_revision,
@@ -213,7 +215,7 @@ if __name__ == "__main__":
 
     dataset = load_dataset(script_args.dataset_name)
     train_dataset = dataset[script_args.dataset_train_split]
-    train_dataset = train_dataset.select(range(40000))
+    train_dataset = train_dataset.select(range(80000))
 
     # Add these after model loading:
     print("\nModel quantization verification:")

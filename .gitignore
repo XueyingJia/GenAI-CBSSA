@@ -74,3 +74,13 @@ test.ipynb
 wandb/
 pythia-160m-sft-HH/
 pythia-160m-sft-SG/
+pythia-1b-online-dpo-HH-merge-rewardmodel
+pythia-1b-online-dpo-HH-merge-rewardmodel-duplicate
+pythia-1b-online-dpo-HH-merge-rewardmodel-resume
+pythia-1b-online-dpo-SG-merge-llama-judge
+pythia-1b-online-dpo-SG-merge-llama-judge-resume
+pythia-160m-online-dpo-SG
+pythia-160m-online-dpo-SG-2
+pythia-160m-online-dpo-SG-3
+# special files
+single_gpu.yaml
