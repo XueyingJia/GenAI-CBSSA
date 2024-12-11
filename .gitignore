@@ -7,6 +7,7 @@ Icon?
 .Trashes
 .AppleDouble
 .LSOverride
+__MACOSX
 
 # Logs and temporary files
 *.log
@@ -82,5 +83,26 @@ pythia-1b-online-dpo-SG-merge-llama-judge-resume
 pythia-160m-online-dpo-SG
 pythia-160m-online-dpo-SG-2
 pythia-160m-online-dpo-SG-3
+pythia-1b-stage2-SG-base-HH-sft
+pythia-160m-stage2-SG-base-HH-sft
+pythia-1b-online-dpo-ground-truth-lead
+pythia-1b-online-dpo-SG-merge-sfairXC-judge
+pythia-1b-online-dpo-test-reward-model-change
+pythia-160m-online-dpo-ground-truth-lead
+qwen-0.5b-oaif
+qwen-0.5b-ours
+qwen-0.5b-sft-HH-online-dpo
+qwen-0.5b-sft-HH-online-dpo-ground-truth-lead
+qwen-1.5b-HH-online-dpo-ground-truth-lead-smaller-batch
+qwen-1.5b-HH-online-dpo-ground-truth-lead-xs-batch
+qwen-1.5b-HH-online-dpo-smaller-batch
+qwen-1.5b-HH-online-dpo-xs-batch
+qwen-1.5b-instruct-oaif
+qwen-1.5b-instruct-ours
+qwen-1.5b-sft-HH-online-dpo
+qwen-1.5b-sft-HH-online-dpo-ground-truth-lead
+qwen-1.5b-sft-oaif
+qwen-1.5b-sft-ours
+qwen-1.5b-sft-ours-duplicate
 # special files
 single_gpu.yaml

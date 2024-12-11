@@ -39,6 +39,7 @@ python examples/scripts/dpo_online.py \
     --use_peft
 """
 
+
 import torch
 from datasets import load_dataset
 from transformers import AutoModelForCausalLM, AutoModelForSequenceClassification, AutoTokenizer, GenerationConfig, BitsAndBytesConfig
@@ -48,7 +49,6 @@ from trl import (
     LogCompletionsCallback,
     ModelConfig,
     OnlineDPOConfig,
-    OnlineDPOTrainer,
     OpenAIPairwiseJudge,
     PairRMJudge,
     ScriptArguments,
@@ -57,6 +57,7 @@ from trl import (
     get_peft_config,
     get_quantization_config,
 )
+from trl.trainer.new_online_dpo_trainer import NewOnlineDPOTrainer
 from trl.trainer.utils import SIMPLE_CHAT_TEMPLATE
 
 SG_PAIRWISE_SYSTEM_PROMPT = '''I require a leaderboard for various large language models. I'll provide you with prompts given to these models and their corresponding outputs. Your task is to assess these responses, focusing on their suitability for generating engaging, imaginative, and age-appropriate children's stories.
@@ -222,7 +223,7 @@ if __name__ == "__main__":
     print(f"Model parameters dtypes: {set(param.dtype for param in model.parameters())}")
     
     
-    trainer = OnlineDPOTrainer(
+    trainer = NewOnlineDPOTrainer(
         model=model,
         reward_model=reward_model,
         judge=judge,
